@@ -1,0 +1,15 @@
+audit:
+  ki_dir: ".kiro/specs/zt-sr-audit-refactor"
+  code_dir: "zt_sr_sdwan"
+  output_dir: "zt_sr_sdwan/results"
+dataset:
+  caida_dataset_id: "passive-2024"
+  topology: "internetmci"
+  use_mock: true
+baseline:
+  algorithms:
+    - SP-Routing
+    - QoS-Routing
+    - Seg-Routing
+    - ZT-Routing
+    - ZT-SR-DRL

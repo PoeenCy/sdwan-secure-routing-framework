@@ -1,0 +1,23 @@
+reward:
+  alpha: 0.30
+  beta: 0.30
+  gamma: 0.20
+  mu: 0.10
+  nu: 0.10
+  lambda1: 0.50
+  lambda2: 0.50
+  theta_bn: 0.30
+  bw_max: 1000.0
+  delay_max: 100.0
+  # QoS-aware BW reward: -alpha * bw_ref / (BW + bw_ref)
+  # bw_ref = congestion reference (Mbps).
+  #   At BW >> bw_ref : penalty -> 0   (good link, small penalty)
+  #   At BW =  bw_ref : penalty = -alpha * 0.5
+  #   At BW ->  0     : penalty -> -alpha (congested, max penalty)
+  # NOTE: This is a REWARD signal only — not a hard routing block.
+  # ZT-SR-VI still routes through low-BW links if no better option exists in E_f;
+  # it just receives a lower reward, reflecting the degraded QoS.
+  bw_ref: 50.0
+  # QoS compliance monitoring threshold (used by ActionMask.compute_qos_compliance).
+  # DOES NOT affect E_f or routing decisions — only used for post-routing QoS reports.
+  bw_min_threshold: 20.0

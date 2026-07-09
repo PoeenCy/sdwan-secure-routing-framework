@@ -1,0 +1,18 @@
+# Ngưỡng niềm tin (trust threshold) yêu cầu cho từng zone nguồn/đích
+# theta_path = max(theta_zone[s], theta_zone[d])
+theta_zone:
+  FIN: 0.90
+  Core: 0.85
+  IT: 0.80
+  HR: 0.60
+  DMZ: 0.50
+
+# Cấu hình ZTA thích nghi và phơi nhiễm cấu trúc
+use_adaptive_theta: true
+k_factor: 1.0
+use_avod_context: true
+
+trust_weights:
+  w_I: 0.40
+  w_B: 0.30
+  w_C: 0.30

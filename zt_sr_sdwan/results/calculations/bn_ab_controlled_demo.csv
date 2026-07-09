@@ -1,0 +1,5 @@
+demo,root_r,target_l,shortest_paths,NSP_rl,node_n,role_for_this_pair,NSP_rl_n,contribution_NSP_rl_n_over_NSP_rl,BN_n_final_after_all_pairs,node_n_in_L_G,AB_G_final
+bn_ab_validation,14,6,14->8->6,1,8,intermediate,1,1.000000,2.000000,False,0.500000
+bn_ab_validation,14,6,14->8->6,1,6,target_endpoint,0,0.000000,1.000000,True,0.500000
+bn_ab_validation,14,5,14->8->6->5,1,8,intermediate,1,1.000000,2.000000,False,0.500000
+bn_ab_validation,14,5,14->8->6->5,1,6,intermediate,1,1.000000,1.000000,True,0.500000
