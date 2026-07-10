@@ -54,10 +54,8 @@ SD_WAN_Secure_Routing/
 │   ├── config/                  # Cấu hình YAML
 │   ├── data/topologies/         # Topology nhỏ dùng làm fixture công khai
 │   └── results/                 # CSV và hình ảnh kết quả đã chọn lọc
-├── audit_system/                # Module hỗ trợ audit/đối chiếu thiết kế
 ├── docs/                        # Tài liệu tổng quan và báo cáo kỹ thuật
 ├── generate_plots.py            # Tạo lại biểu đồ từ CSV kết quả
-├── main.py                      # Điểm vào cho workflow audit
 ├── .gitignore
 └── README.md
 ```

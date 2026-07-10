@@ -14,10 +14,12 @@ Thư mục chứa các script hỗ trợ chạy các kịch bản kiểm thử t
 2. **Benchmark (`run_baselines.py`)**: 
    Chạy đồng loạt 5 thuật toán cơ sở (SP, QoS, Seg, ZT, ZT-SR-VI) để so sánh các chỉ số độ trễ, Trust, và độ bền vững trên cùng bộ dữ liệu. Kết quả được lưu vào `results/`.
 
-3. **Data Fetching & Prep**: 
-   - `fetch_topology.py`: Tải đồ thị mạng InternetMCI.
-   - `download_datasets.py`, `download_kaggle.py`: Các script lấy dữ liệu từ xa.
-   - `parse_caida_pcap.py`, `format_traffic_data.py`: Chuẩn hóa dữ liệu traffic.
+3. **Data Fixture**:
+   - `fetch_topology.py`: Tải hoặc tạo lại fixture topology InternetMCI dùng cho mô phỏng.
 
-4. **Visualizations**: 
+4. **CSV Export**:
+   - `export_calculation_csvs.py`: Xuất các bảng tính toán chi tiết cho QoS, trust, BN/AB, feasible edge và so sánh baseline.
+   - `generate_explanatory_diagrams.py`: Sinh lại các sơ đồ giải thích trong `docs/assets/`.
+
+5. **Visualizations**:
    Các script như `visualize_c_g.py`, `visualize_routing.py` dùng để render hình ảnh của đồ thị C, G và trực quan hóa đường đi, xuất file ảnh ra thư mục `results/`.

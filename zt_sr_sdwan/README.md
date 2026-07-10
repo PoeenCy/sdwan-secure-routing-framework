@@ -22,7 +22,6 @@ Mỗi thư mục con đảm nhiệm một vai trò riêng:
 | `scripts/` | Chứa script chạy scenario, benchmark, visualization và export CSV | [scripts/README.md](scripts/README.md) |
 | `tests/` | Chứa bộ kiểm thử Pytest để xác minh mô hình | [tests/README.md](tests/README.md) |
 | `results/` | Chứa CSV và hình ảnh kết quả đã chọn lọc | [results/README.md](results/README.md) |
-| `audit_system/` | Hệ thống đối chiếu mã nguồn với yêu cầu thiết kế | `../audit_system/` |
 
 ## Quy trình cài đặt và thực thi
 

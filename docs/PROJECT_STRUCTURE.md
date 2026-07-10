@@ -14,10 +14,9 @@ zt_sr_sdwan/
 └── results/      CSV/PNG kết quả đã chọn lọc
 ```
 
-## Module hỗ trợ
+## Tài liệu công khai
 
 ```text
-audit_system/     Hệ thống hỗ trợ audit/refactor
 docs/             Tổng quan dự án, ghi chú cấu trúc, báo cáo chi tiết và hình minh họa
 docs/assets/      Sơ đồ quy trình, sơ đồ hai tầng graph và hình path theo kịch bản
 ```
