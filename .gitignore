@@ -1,109 +1,55 @@
-# Python
+# Python environments, caches and build output
+.venv/
+venv/
+env/
 __pycache__/
 *.py[cod]
-*$py.class
-*.so
-.Python
-env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
 .pytest_cache/
 .coverage
 htmlcov/
-venv/
+build/
+dist/
+*.egg-info/
 
-# Environment / secrets
+# Secrets and local credentials
 .env
 .env.*
 !.env.example
-zt_sr_sdwan/.env
-zt_sr_sdwan/.env.*
-!zt_sr_sdwan/.env.example
 .kaggle/
 kaggle.json
 
-# IDE / OS
+# Editor and operating-system files
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
 *.swp
-.agents/
 
-# LaTeX
-*.aux
-*.bbl
-*.blg
-*.brf
-*.fls
-*.fdb_latexmk
-*.idx
-*.ilg
-*.ind
-*.lof
-*.lot
-*.out
-*.toc
-*.synctex.gz
-*.pdf
-
-# Results & output
-output/
-zt_sr_sdwan/results/*
-!zt_sr_sdwan/results/README.md
-!zt_sr_sdwan/results/*.png
-!zt_sr_sdwan/results/calculations/
-zt_sr_sdwan/results/calculations/*
-!zt_sr_sdwan/results/calculations/*.csv
-!zt_sr_sdwan/results/visualizations/
-zt_sr_sdwan/results/visualizations/*
-!zt_sr_sdwan/results/visualizations/*.png
-zt_sr_sdwan/results/audit_discrepancies.md
-
-# Raw/downloaded datasets
-zt_sr_sdwan/data/network_traffic_dataset.csv
-zt_sr_sdwan/data/nvd/*.json
-zt_sr_sdwan/data/traffic/*.csv
+# Packet-level emulation artifacts
+emulation/runtime/
+emulation/vendor/
 *.pcap
 *.pcapng
+*.log
 
-# ML/runtime artifacts
+# Experiment/model output
+output/
+results/
+runs/
+wandb/
 *.pt
 *.pth
 *.pkl
 *.joblib
 *.onnx
 *.model
-trained_models/
-model_artifacts/
-runs/
-wandb/
-logs/
-*.log
 
-# Research drafts / private working material
-doc/
-docs/CV_PROJECT_BRIEF.md
-NoiDungNghienCu_Nha/
-Knowledge/
-
-# Presentations
-presentation/
-presentation_assets/
-
-# Local prompts, fixes, checks
+# Local Codex/research working data
+.agents/
+.codex/
 Fix/
 check/
+Knowledge/
+NoiDungNghienCu_Nha/
+presentation/
+presentation_assets/

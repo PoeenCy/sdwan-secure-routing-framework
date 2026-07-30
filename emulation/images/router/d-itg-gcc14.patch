@@ -1,0 +1,40 @@
+--- D-ITG-2.8.1-r1023/src/ITGSend/traffic.cpp
++++ D-ITG-2.8.1-r1023/src/ITGSend/traffic.cpp
+@@ -412,7 +412,7 @@
+ 			argc -= 3;
+ 			break;
+ 		case 'N':
+-			if ((argc < 5) || (argv[h + 2] <= 0))	
++			if ((argc < 5) || (strtod(argv[h + 2], NULL) <= 0))
+ 				ReportErrorAndExit("Protocol Parser",
+ 					"Invalid settings for the On/Off periods", programName, flowId);
+ 			b = strtod(argv[h + 1], NULL); 	
+@@ -538,7 +538,7 @@
+ 			argc -= 3;
+ 			break;
+ 		case 'N':
+-			if ((argc < 3) || (argv[h + 2] <= 0))	
++			if ((argc < 3) || (strtod(argv[h + 2], NULL) <= 0))
+ 				ReportErrorAndExit("Protocol Parser",
+ 					"Invalid settings for the Off/Off periods", programName, flowId);
+ 			b = strtod(argv[h + 1], NULL); 	
+--- D-ITG-2.8.1-r1023/src/ITGSend/ITGSend.cpp
++++ D-ITG-2.8.1-r1023/src/ITGSend/ITGSend.cpp
+@@ -1257,7 +1257,7 @@
+ 				argc -= 3;
+ 				break;
+ 			case 'N':
+-				if ((argc < 3) || (argv[h + 2] <= 0))	
++				if ((argc < 3) || (strtod(argv[h + 2], NULL) <= 0))
+ 					ReportErrorAndExit("Protocol Parser",
+ 					    "Invalid pkts per sec", programName, id);
+ 				flows[id].IntArrivDistro = pdNormal;
+@@ -1392,7 +1392,7 @@
+ 				argc -= 3;
+ 				break;
+ 			case 'n':
+-				if ((argc < 3) || (argv[h + 2] <= 0))	
++				if ((argc < 3) || (atoi(argv[h + 2]) <= 0))
+ 					ReportErrorAndExit("Protocol Parser", "Invalid pkt size",
+ 					    programName, id);
+ 				delete flows[id].PktSize;

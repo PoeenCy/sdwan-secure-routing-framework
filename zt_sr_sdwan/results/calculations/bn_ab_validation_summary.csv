@@ -1,2 +1,0 @@
-scenario,source,target,validation_path,R_G,L_G,BN_8,BN_6,BN_5,avg_bn_on_validation_path,MSPL,NSP,AB_G,CMC,purpose
-BN_AB_VALIDATION,14,5,14->8->6->5,14,6;5,2.000000,1.000000,0.000000,0.750000,2,2,0.500000,1,"Dedicated non-zero BN/AB metric validation case, not the production benchmark"

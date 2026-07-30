@@ -1,6 +1,0 @@
-# Catalog QoS / SLA cho dịch vụ
-services:
-  VoIP:
-    max_delay: 150
-  Generic:
-    max_delay: 500

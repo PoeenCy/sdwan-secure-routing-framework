@@ -1,0 +1,7 @@
+docker==7.1.0
+# tcconfig pulls mbstrdecoder/chardet; Requests 2.x only supports chardet < 6.
+chardet==5.2.0
+networkx==3.5
+PyYAML==6.0.2
+requests==2.32.4
+pytest==8.4.1
