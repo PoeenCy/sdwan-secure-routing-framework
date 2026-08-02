@@ -94,6 +94,21 @@ Parser đọc trực tiếp XML SNDlib và dừng nếu metadata bắt buộc kh
 Mỗi link trong instance được triển khai như một physical link bidirectional vì
 data plane IP cần giao tiếp hai chiều; quyết định này được ghi trong manifest.
 
+Phạm vi “lấy từ SNDlib” được giới hạn rõ như sau:
+
+| Dữ liệu | Có giữ từ SNDlib? | Biến đổi khi triển khai |
+|---|---|---|
+| 12 node ID | Có, giữ nguyên | Mỗi node trở thành một FRR router Docker |
+| 15 cặp link endpoint | Có, giữ nguyên | Directed record được dùng như physical link hai chiều |
+| Pre-installed capacity | Có | Chia cùng scale factor với traffic demand rồi nạp vào HTB |
+| Tọa độ node | Có | Là đầu vào mô hình Haversine, không phải delay đo |
+| IP subnet, OSPF và qdisc | Không có trong dataset | Được sinh deterministically bởi runtime |
+| Measured RTT/delay/loss | Không có trong topology XML | Chỉ thu từ packet và counter sau `net.start()` |
+
+Mỗi runtime edge lưu `source_edge_key` trùng link ID trong XML. Vì vậy có thể
+đối chứng một-một giữa graph SNDlib và veth được tạo, trong khi vẫn nhận biết
+rõ các thuộc tính do emulation bổ sung.
+
 SNDlib ghi rõ tọa độ chủ yếu phục vụ visualization. Vì vậy tọa độ chỉ là đầu
 vào cho mô hình delay công bố ở mục 4.4, không được gọi là tuyến cáp thực tế.
 
@@ -123,9 +138,9 @@ Capacity được đọc từ metadata của từng edge nếu dataset cung cấ
 
 Do giới hạn máy thử nghiệm, capacity có thể được scale theo một hệ số chung:
 
-\[
+```math
 C'_{ij} = \frac{C_{ij}}{k}
-\]
+```
 
 Trong đó:
 
@@ -135,15 +150,15 @@ Trong đó:
 
 Nếu traffic matrix cũng được scale, phải dùng cùng hệ số:
 
-\[
+```math
 D'_{st}(t) = \frac{D_{st}(t)}{k}
-\]
+```
 
 Mục tiêu là giữ nguyên tỷ lệ tải tương đối:
 
-\[
+```math
 \frac{D'_{st}(t)}{C'_{ij}}
-\]
+```
 
 Không được giảm capacity nhưng giữ nguyên traffic demand rồi tuyên bố rằng workload vẫn đại diện cho dataset gốc.
 
@@ -158,12 +173,12 @@ Quy trình:
 3. áp dụng hệ số kéo dài tuyến cáp `stretch factor`;
 4. chia cho tốc độ truyền trong sợi quang.
 
-\[
+```math
 d^{prop}_{ij}
 =
 \frac{\alpha \times d^{geo}_{ij}}
 {204{,}000\ \text{km/s}}
-\]
+```
 
 Trong đó:
 
@@ -188,27 +203,27 @@ Haversine chỉ được thực thi khi dựng plan để tạo
 $d^{cfg}_{prop}$, sau đó giá trị này được nạp vào TCLink/NetEm. Nó không được
 dùng lại như một mẫu dữ liệu đo:
 
-\[
+```math
 d^{cfg}_{prop,e}
 = \frac{\alpha d^{geo}_e}{v_f}\times 10^3\ \text{ms}
 \quad\longrightarrow\quad
 \texttt{TCLink(delay=...)}
-\]
+```
 
 Sau `net.start()`, kết quả phải đến từ packet và counter thật:
 
-\[
-d^{meas}_{D\text{-}ITG}=t_{recv}-t_{send},
+```math
+d^{meas}_{\mathrm{D-ITG}}=t_{recv}-t_{send},
 \qquad
 RTT^{meas}_{probe}=t_{reply}-t_{send},
-\]
+```
 
-\[
+```math
 loss^{meas}
 = \frac{N_{sent}-N_{received}}{N_{sent}},
 \qquad
 \Delta drop_{qdisc}=drop_{after}-drop_{before}.
-\]
+```
 
 Artifact phải được tách vật lý thành hai thư mục:
 
@@ -468,12 +483,12 @@ Không được giả định ET Open chắc chắn có rule cho mọi CVE. Trư
 
 OFPPortStats không cung cấp trực tiếp available bandwidth. Throughput được tính từ chênh lệch counter:
 
-\[
+```math
 Throughput(t)
 =
 \frac{8(B_{t_2}-B_{t_1})}
 {t_2-t_1}
-\]
+```
 
 Available bandwidth cần active probing hoặc estimation riêng và phải được gọi đúng là giá trị ước lượng.
 

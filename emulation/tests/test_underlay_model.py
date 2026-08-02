@@ -71,6 +71,29 @@ def test_abilene_plan_has_pinned_scaled_data_and_disjoint_addresses() -> None:
     assert all(link.distance_km > 0 for link in plan.links)
     assert all(link.delay_ms > 0 for link in plan.links)
 
+    expected_sndlib_edges = {
+        "ATLAM5_ATLAng": frozenset(("ATLAM5", "ATLAng")),
+        "ATLAng_HSTNng": frozenset(("ATLAng", "HSTNng")),
+        "ATLAng_IPLSng": frozenset(("ATLAng", "IPLSng")),
+        "ATLAng_WASHng": frozenset(("ATLAng", "WASHng")),
+        "CHINng_IPLSng": frozenset(("CHINng", "IPLSng")),
+        "CHINng_NYCMng": frozenset(("CHINng", "NYCMng")),
+        "DNVRng_KSCYng": frozenset(("DNVRng", "KSCYng")),
+        "DNVRng_SNVAng": frozenset(("DNVRng", "SNVAng")),
+        "DNVRng_STTLng": frozenset(("DNVRng", "STTLng")),
+        "HSTNng_KSCYng": frozenset(("HSTNng", "KSCYng")),
+        "HSTNng_LOSAng": frozenset(("HSTNng", "LOSAng")),
+        "IPLSng_KSCYng": frozenset(("IPLSng", "KSCYng")),
+        "LOSAng_SNVAng": frozenset(("LOSAng", "SNVAng")),
+        "NYCMng_WASHng": frozenset(("NYCMng", "WASHng")),
+        "SNVAng_STTLng": frozenset(("SNVAng", "STTLng")),
+    }
+    observed_edges = {
+        link.source_edge_key: frozenset((link.left, link.right))
+        for link in plan.links
+    }
+    assert observed_edges == expected_sndlib_edges
+
 
 def test_plan_serialization_records_research_provenance() -> None:
     config = load_underlay_config(REPO_ROOT, CONFIG_PATH)

@@ -1,0 +1,152 @@
+graph underlay_complete {
+  graph [
+    layout=neato,
+    overlap=false,
+    splines=true,
+    outputorder=edgesfirst,
+    bgcolor="transparent",
+    pad="0.45",
+    margin=0,
+    fontname="DejaVu Sans",
+    label="Complete underlay connectivity\nSolid: validated SNDlib core | Dashed: CPE WAN attachment pending runtime validation",
+    labelloc=t,
+    fontsize=18
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    fillcolor="#e8f1fb",
+    color="#28527a",
+    penwidth=1.6,
+    fontname="DejaVu Sans",
+    fontsize=11,
+    margin="0.12,0.08"
+  ];
+  edge [
+    color="#58748f",
+    penwidth=1.8,
+    fontname="DejaVu Sans",
+    fontsize=8,
+    fontcolor="#263746"
+  ];
+
+  STTLng [pos="0,5!"];
+  SNVAng [pos="0.4,2.3!"];
+  LOSAng [pos="0.1,0.3!"];
+  DNVRng [pos="3.2,3.7!"];
+  KSCYng [pos="5.7,2.5!"];
+  HSTNng [pos="6.2,0.2!"];
+  CHINng [pos="7.3,5.0!"];
+  IPLSng [pos="8.1,3.4!"];
+  ATLAng [pos="9.2,1.4!"];
+  ATLAM5 [pos="8.6,0.1!"];
+  WASHng [pos="11.6,2.8!"];
+  NYCMng [pos="11.5,4.7!"];
+
+  CPE_DMZ [
+    pos="-2.0,1.3!",
+    label="CPE-DMZ\nLAN 192.168.40.0/24",
+    shape=ellipse,
+    fillcolor="#e9f8ef",
+    color="#228b5a"
+  ];
+  CPE_HR [
+    pos="7.4,-1.7!",
+    label="CPE-HR\nLAN 192.168.10.0/24",
+    shape=ellipse,
+    fillcolor="#e9f8ef",
+    color="#228b5a"
+  ];
+  CPE_IT [
+    pos="7.5,6.8!",
+    label="CPE-IT\nLAN 192.168.20.0/24",
+    shape=ellipse,
+    fillcolor="#e9f8ef",
+    color="#228b5a"
+  ];
+  CPE_FIN [
+    pos="14.0,3.7!",
+    label="CPE-FIN\nLAN 192.168.30.0/24",
+    shape=ellipse,
+    fillcolor="#e9f8ef",
+    color="#228b5a"
+  ];
+
+  ATLAM5 -- ATLAng [label="u001"];
+  ATLAng -- HSTNng [label="u002"];
+  ATLAng -- IPLSng [
+    label="u003 · 24.8M bottleneck",
+    color="#c2413b",
+    fontcolor="#9d2722",
+    penwidth=3.0
+  ];
+  ATLAng -- WASHng [label="u004"];
+  CHINng -- IPLSng [label="u005"];
+  CHINng -- NYCMng [label="u006"];
+  DNVRng -- KSCYng [label="u007"];
+  DNVRng -- SNVAng [label="u008"];
+  DNVRng -- STTLng [label="u009"];
+  HSTNng -- KSCYng [label="u010"];
+  HSTNng -- LOSAng [label="u011"];
+  IPLSng -- KSCYng [label="u012"];
+  LOSAng -- SNVAng [label="u013"];
+  NYCMng -- WASHng [label="u014"];
+  SNVAng -- STTLng [label="u015"];
+
+  CPE_HR -- ATLAng [
+    label="Path A · 10.65.0.0/30",
+    style=dashed,
+    color="#1677c8",
+    fontcolor="#0d5f9f",
+    penwidth=2.4
+  ];
+  CPE_HR -- HSTNng [
+    label="Path B · 10.65.0.4/30",
+    style=dashed,
+    color="#cc6f16",
+    fontcolor="#9f500c",
+    penwidth=2.4
+  ];
+  CPE_IT -- CHINng [
+    label="Path A · 10.65.0.8/30",
+    style=dashed,
+    color="#1677c8",
+    fontcolor="#0d5f9f",
+    penwidth=2.4
+  ];
+  CPE_IT -- IPLSng [
+    label="Path B · 10.65.0.12/30",
+    style=dashed,
+    color="#cc6f16",
+    fontcolor="#9f500c",
+    penwidth=2.4
+  ];
+  CPE_FIN -- NYCMng [
+    label="Path A · 10.65.0.16/30",
+    style=dashed,
+    color="#1677c8",
+    fontcolor="#0d5f9f",
+    penwidth=2.4
+  ];
+  CPE_FIN -- WASHng [
+    label="Path B · 10.65.0.20/30",
+    style=dashed,
+    color="#cc6f16",
+    fontcolor="#9f500c",
+    penwidth=2.4
+  ];
+  CPE_DMZ -- LOSAng [
+    label="Path A · 10.65.0.24/30",
+    style=dashed,
+    color="#1677c8",
+    fontcolor="#0d5f9f",
+    penwidth=2.4
+  ];
+  CPE_DMZ -- SNVAng [
+    label="Path B · 10.65.0.28/30",
+    style=dashed,
+    color="#cc6f16",
+    fontcolor="#9f500c",
+    penwidth=2.4
+  ];
+}

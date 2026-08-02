@@ -91,22 +91,28 @@ vật lý được mô hình hóa**, không phải kết quả của lần chạ
 **Pha đo lường** chỉ bắt đầu sau khi topology đã start và traffic thật đã đi
 qua interface. Các đại lượng kết quả được lấy từ công cụ quan sát runtime:
 
-$$
-d^{\mathrm{meas}}_{\text{one-way}}
-= t^{\mathrm{recv}}_{\text{D-ITG}}
-- t^{\mathrm{send}}_{\text{D-ITG}},
-$$
+```math
+d_{\mathrm{ow}}^{\mathrm{meas}}
+= t_{\mathrm{rx}}^{\mathrm{D-ITG}}
+- t_{\mathrm{tx}}^{\mathrm{D-ITG}}
+```
 
-$$
+```math
 \mathrm{RTT}^{\mathrm{meas}}
-= t^{\mathrm{probe\ reply}}-t^{\mathrm{probe\ send}},
-$$
+= t_{\mathrm{reply}}^{\mathrm{probe}}
+- t_{\mathrm{send}}^{\mathrm{probe}}
+```
 
-$$
-\Delta N^{\mathrm{drop}}_e
-= N^{\mathrm{drop}}_{e,\mathrm{after}}
-- N^{\mathrm{drop}}_{e,\mathrm{before}}.
-$$
+```math
+\Delta N_{e,\mathrm{drop}}
+= N_{e,\mathrm{after}}^{\mathrm{drop}}
+- N_{e,\mathrm{before}}^{\mathrm{drop}}
+```
+
+Ký hiệu $\mathrm{ow}$ là one-way, $\mathrm{tx}/\mathrm{rx}$ là thời điểm
+gửi/nhận trong log D-ITG. Cách viết này không chứa chữ hoặc khoảng trắng
+phức tạp trong chỉ số dưới, nên GitHub Markdown không làm mất dấu `_` khi
+render.
 
 Trong đó timestamp đến từ D-ITG hoặc active probe, còn counter drop đến từ
 `tc -s -d qdisc`. `tcpdump` dùng để chứng minh packet xuất hiện ở đúng hop và
@@ -126,7 +132,74 @@ Mọi script vẽ đồ thị kết quả phải từ chối artifact `configura
 
 ## 3. Topology routed underlay
 
-Topology sử dụng đủ 12 node và 15 physical link của bộ Abilene trong SNDlib.
+### 3.1. Sơ đồ kết nối tổng thể
+
+Sơ đồ dưới đây trả lời trực tiếp router nào nối router nào. Nét liền là 15
+core link lấy từ SNDlib và đã được kiểm chứng bằng packet forwarding. Nét đứt
+là tám WAN attachment đã có trong cấu hình overlay nhưng chưa vượt qua full
+runtime validation. Path A dùng màu xanh dương; Path B dùng màu cam.
+
+![Sơ đồ tổng kết nối underlay và CPE](assets/underlay-complete-topology.svg)
+
+Core underlay có adjacency chính xác như sau:
+
+| Router | Router láng giềng nối trực tiếp | Số core link |
+|---|---|---:|
+| ATLAM5 | ATLAng | 1 |
+| ATLAng | ATLAM5, HSTNng, IPLSng, WASHng | 4 |
+| CHINng | IPLSng, NYCMng | 2 |
+| DNVRng | KSCYng, SNVAng, STTLng | 3 |
+| HSTNng | ATLAng, KSCYng, LOSAng | 3 |
+| IPLSng | ATLAng, CHINng, KSCYng | 3 |
+| KSCYng | DNVRng, HSTNng, IPLSng | 3 |
+| LOSAng | HSTNng, SNVAng | 2 |
+| NYCMng | CHINng, WASHng | 2 |
+| SNVAng | DNVRng, LOSAng, STTLng | 3 |
+| STTLng | DNVRng, SNVAng | 2 |
+| WASHng | ATLAng, NYCMng | 2 |
+
+Một số đường đi dễ nhìn trên graph:
+
+```text
+ATLAM5 → ATLAng → IPLSng → CHINng → NYCMng
+LOSAng → HSTNng → KSCYng → DNVRng → STTLng
+LOSAng → SNVAng → DNVRng
+ATLAng → WASHng → NYCMng
+```
+
+Đây chỉ là các chuỗi kết nối hợp lệ để đọc graph, không phải route được gắn
+cứng. FRR/OSPF tự chọn next hop từ topology đã hội tụ; `traceroute` mới là
+bằng chứng đường đi thực tế của một packet trong từng lần chạy.
+
+### 3.2. Phần nào lấy nguyên từ SNDlib
+
+Graph structure của underlay lấy nguyên từ file `abilene.xml`: giữ đủ 12 node
+ID và đúng 15 cặp endpoint của 15 phần tử `<link>`. Parser cũng đọc trực tiếp
+tọa độ `<coordinates>` và capacity trong
+`<preInstalledModule><capacity>`. Runtime link lưu lại `source_edge_key`, vì
+vậy từng cạnh `u001`–`u015` luôn truy ngược được về đúng link ID trong XML.
+
+Tuy nhiên, “lấy nguyên topology” không có nghĩa mọi thuộc tính runtime đều có
+sẵn trong SNDlib. Bảng sau phân biệt chính xác phần giữ nguyên và phần được
+bổ sung khi triển khai:
+
+| Thành phần | Nguồn | Cách áp dụng trong Containernet |
+|---|---|---|
+| Node ID | SNDlib XML | Giữ nguyên đủ 12 tên node và tạo một router Docker cho mỗi node |
+| Link endpoint | SNDlib XML | Giữ nguyên đúng 15 cặp node; không thêm hoặc bỏ core link |
+| Hướng link | SNDlib instance là directed | Chuẩn hóa thành một physical link hai chiều vì IP/OSPF cần giao tiếp hai chiều; quyết định được ghi `link_model: bidirected` |
+| Capacity | `preInstalledModule.capacity` | Đọc nguyên 2.480/9.920 Mbps, sau đó chia hệ số công bố 100 và nạp 24,8/99,2 Mbps vào HTB |
+| Tọa độ | SNDlib `<coordinates>` | Chỉ dùng làm đầu vào Haversine để sinh propagation delay cấu hình |
+| Delay đo | Không có trong topology XML | Không bịa trường dữ liệu; đo động bằng D-ITG hoặc active probe sau khi mạng start |
+| IP, OSPF, qdisc | Không thuộc SNDlib | Sinh deterministically để biến graph thành mạng routed packet-level |
+| `additionalModules` và cost mở rộng | Có trong XML | Không dùng trong baseline hiện tại; baseline chỉ dùng pre-installed capacity |
+
+Ví dụ, XML chứa link `ATLAng_IPLSng`, hai endpoint `IPLSng` và `ATLAng`,
+capacity pre-installed 2.480 Mbps. Runtime bảo toàn cặp endpoint đó dưới ID
+`u003`, biến nó thành veth hai chiều, scale capacity thành 24,8 Mbps và tính
+delay cấu hình 6,074319 ms từ tọa độ. Chỉ cặp node và capacity gốc là dữ liệu
+SNDlib; `/30`, OSPF, HTB, NetEm và CoDel là cơ chế triển khai của thí nghiệm.
+
 Đường màu đỏ `u003` là bottleneck 24,8 Mbps sau khi scale; các đường còn lại
 có capacity 99,2 Mbps.
 
@@ -136,23 +209,23 @@ Bảng sau là chú giải đầy đủ cho từng link. Delay trong bảng là 
 delay một chiều được cấu hình trên mỗi hướng egress, không phải RTT đo sẵn
 trong SNDlib.
 
-| Link | Hai đầu router | Capacity cấu hình | Propagation delay một chiều |
-|---|---|---:|---:|
-| `u001` | ATLAM5 — ATLAng | 99,2 Mbps | 1,36 ms |
-| `u002` | ATLAng — HSTNng | 99,2 Mbps | 11,11 ms |
-| `u003` | ATLAng — IPLSng | 24,8 Mbps | 6,07 ms |
-| `u004` | ATLAng — WASHng | 99,2 Mbps | 9,26 ms |
-| `u005` | CHINng — IPLSng | 99,2 Mbps | 2,67 ms |
-| `u006` | CHINng — NYCMng | 99,2 Mbps | 11,79 ms |
-| `u007` | DNVRng — KSCYng | 99,2 Mbps | 7,66 ms |
-| `u008` | DNVRng — SNVAng | 99,2 Mbps | 15,59 ms |
-| `u009` | DNVRng — STTLng | 99,2 Mbps | 16,17 ms |
-| `u010` | HSTNng — KSCYng | 99,2 Mbps | 10,57 ms |
-| `u011` | HSTNng — LOSAng | 99,2 Mbps | 22,57 ms |
-| `u012` | IPLSng — KSCYng | 99,2 Mbps | 9,28 ms |
-| `u013` | LOSAng — SNVAng | 99,2 Mbps | 5,18 ms |
-| `u014` | NYCMng — WASHng | 99,2 Mbps | 3,45 ms |
-| `u015` | SNVAng — STTLng | 99,2 Mbps | 11,69 ms |
+| Runtime | SNDlib link ID | Hai đầu router | Capacity cấu hình | Propagation delay cấu hình một chiều |
+|---|---|---|---:|---:|
+| `u001` | `ATLAM5_ATLAng` | ATLAM5 — ATLAng | 99,2 Mbps | 1,36 ms |
+| `u002` | `ATLAng_HSTNng` | ATLAng — HSTNng | 99,2 Mbps | 11,11 ms |
+| `u003` | `ATLAng_IPLSng` | ATLAng — IPLSng | 24,8 Mbps | 6,07 ms |
+| `u004` | `ATLAng_WASHng` | ATLAng — WASHng | 99,2 Mbps | 9,26 ms |
+| `u005` | `CHINng_IPLSng` | CHINng — IPLSng | 99,2 Mbps | 2,67 ms |
+| `u006` | `CHINng_NYCMng` | CHINng — NYCMng | 99,2 Mbps | 11,79 ms |
+| `u007` | `DNVRng_KSCYng` | DNVRng — KSCYng | 99,2 Mbps | 7,66 ms |
+| `u008` | `DNVRng_SNVAng` | DNVRng — SNVAng | 99,2 Mbps | 15,59 ms |
+| `u009` | `DNVRng_STTLng` | DNVRng — STTLng | 99,2 Mbps | 16,17 ms |
+| `u010` | `HSTNng_KSCYng` | HSTNng — KSCYng | 99,2 Mbps | 10,57 ms |
+| `u011` | `HSTNng_LOSAng` | HSTNng — LOSAng | 99,2 Mbps | 22,57 ms |
+| `u012` | `IPLSng_KSCYng` | IPLSng — KSCYng | 99,2 Mbps | 9,28 ms |
+| `u013` | `LOSAng_SNVAng` | LOSAng — SNVAng | 99,2 Mbps | 5,18 ms |
+| `u014` | `NYCMng_WASHng` | NYCMng — WASHng | 99,2 Mbps | 3,45 ms |
+| `u015` | `SNVAng_STTLng` | SNVAng — STTLng | 99,2 Mbps | 11,69 ms |
 
 Mỗi router là một Docker container chạy FRRouting. Các core link dùng subnet
 `/30` lấy từ `10.64.0.0/16`; mỗi router còn có một loopback `/32` trong
@@ -393,6 +466,8 @@ Các ảnh SVG được render từ file Graphviz `.dot`
 chiếu trực tiếp với cấu hình. Có thể tạo lại ảnh bằng các lệnh:
 
 ```bash
+neato -Tsvg docs/assets/underlay-complete-topology.dot \
+  -o docs/assets/underlay-complete-topology.svg
 neato -Tsvg docs/assets/underlay-abilene-topology.dot \
   -o docs/assets/underlay-abilene-topology.svg
 dot -Tsvg docs/assets/zt-sdwan-layered-architecture.dot \
