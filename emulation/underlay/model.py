@@ -818,7 +818,7 @@ def _parse_bandwidth_mbps(
     )
 
 
-def _link_measurements(
+def _derive_link_configuration(
     edge: _ParsedEdge,
     nodes: dict[str, _ParsedNode],
     config: UnderlayConfig,
@@ -940,7 +940,7 @@ def build_underlay_plan(config: UnderlayConfig, profile: str) -> UnderlayPlan:
             distance_km,
             delay_ms,
             delay_source,
-        ) = _link_measurements(edge, parsed.nodes, config)
+        ) = _derive_link_configuration(edge, parsed.nodes, config)
         links.append(
             UnderlayLink(
                 link_id=f"u{index:03d}",

@@ -60,7 +60,10 @@ class ContainernetOverlay:
                 "Containernet/Mininet is not installed in the active environment"
             ) from exc
 
-        controller_log_dir = self.repo_root / "emulation/runtime/overlay/controller"
+        controller_log_dir = (
+            self.repo_root
+            / "emulation/runtime/overlay/measurements/controller"
+        )
         controller_log_dir.mkdir(parents=True, exist_ok=True)
         controller_source = (
             self.repo_root / "emulation/controller/zt_overlay.py"
@@ -97,7 +100,9 @@ class ContainernetOverlay:
 
         for site_id, site in self.config.sites.items():
             sensor_log_dir = (
-                self.repo_root / "emulation/runtime/overlay/suricata" / site_id
+                self.repo_root
+                / "emulation/runtime/overlay/measurements/suricata"
+                / site_id
             )
             sensor_log_dir.mkdir(parents=True, exist_ok=True)
             self.cpes[site_id] = self.net.addDocker(

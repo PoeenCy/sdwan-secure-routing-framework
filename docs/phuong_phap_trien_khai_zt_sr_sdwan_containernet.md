@@ -182,6 +182,46 @@ Processing/scheduling delay  = overhead của host emulation
 End-to-end delay             = tổng các thành phần trên
 ```
 
+#### 4.4.1. Ranh giới giữa cấu hình tĩnh và đo lường động
+
+Haversine chỉ được thực thi khi dựng plan để tạo
+$d^{cfg}_{prop}$, sau đó giá trị này được nạp vào TCLink/NetEm. Nó không được
+dùng lại như một mẫu dữ liệu đo:
+
+\[
+d^{cfg}_{prop,e}
+= \frac{\alpha d^{geo}_e}{v_f}\times 10^3\ \text{ms}
+\quad\longrightarrow\quad
+\texttt{TCLink(delay=...)}
+\]
+
+Sau `net.start()`, kết quả phải đến từ packet và counter thật:
+
+\[
+d^{meas}_{D\text{-}ITG}=t_{recv}-t_{send},
+\qquad
+RTT^{meas}_{probe}=t_{reply}-t_{send},
+\]
+
+\[
+loss^{meas}
+= \frac{N_{sent}-N_{received}}{N_{sent}},
+\qquad
+\Delta drop_{qdisc}=drop_{after}-drop_{before}.
+\]
+
+Artifact phải được tách vật lý thành hai thư mục:
+
+```text
+configuration/  # capacity/delay/queue được nạp; không dùng vẽ kết quả
+measurements/   # D-ITG, ping/probe, tcpdump và tc counter quan sát khi chạy
+```
+
+Dashboard chỉ đọc file có `artifact_class=measurement` và
+`plot_eligible=true`. Nếu một biểu đồ delay đọc trực tiếp `delay_ms` từ
+underlay plan thì biểu đồ đó chỉ là visualization của cấu hình, không phải
+kết quả thực nghiệm và phải bị từ chối trong pipeline kết quả.
+
 ### 4.5. Queue và congestion loss
 
 Trên mỗi egress bottleneck:

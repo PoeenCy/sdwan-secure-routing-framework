@@ -6,7 +6,7 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 PROFILE="${1:-mini}"
 shift || true
 VENV_PYTHON="${REPO_ROOT}/.venv/bin/python"
-PLAN_DIR="${REPO_ROOT}/emulation/runtime/underlay/${PROFILE}"
+PLAN_DIR="${REPO_ROOT}/emulation/runtime/underlay/${PROFILE}/configuration"
 
 if [[ ! -x "${VENV_PYTHON}" ]]; then
     echo "Missing ${VENV_PYTHON}; run bootstrap_parrot.sh first." >&2

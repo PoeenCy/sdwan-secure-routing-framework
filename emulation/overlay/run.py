@@ -6,6 +6,7 @@ import os
 import time
 from pathlib import Path
 
+from emulation.artifacts import ArtifactClass, artifact_envelope
 from emulation.underlay.containernet_builder import ContainernetUnderlay
 from emulation.underlay.model import build_underlay_plan, load_underlay_config
 
@@ -22,8 +23,19 @@ def _make_runtime_dir(path: Path) -> None:
             os.chown(directory, int(sudo_uid), int(sudo_gid))
 
 
-def _write_json(path: Path, value: object) -> None:
-    path.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n")
+def _write_artifact(
+    path: Path,
+    artifact_class: ArtifactClass,
+    method: str,
+    payload: object,
+) -> None:
+    document = artifact_envelope(
+        artifact_class=artifact_class,
+        producer="emulation.overlay.run",
+        method=method,
+        payload=payload,
+    )
+    path.write_text(json.dumps(document, indent=2, sort_keys=True) + "\n")
     sudo_uid = os.environ.get("SUDO_UID")
     sudo_gid = os.environ.get("SUDO_GID")
     if os.geteuid() == 0 and sudo_uid and sudo_gid:
@@ -69,13 +81,19 @@ def main() -> int:
         raise RuntimeError(f"Overlay attachment routers are absent: {sorted(missing)}")
 
     runtime_dir = repo_root / "emulation/runtime/overlay"
-    _make_runtime_dir(runtime_dir)
-    _write_json(
-        runtime_dir / "overlay_config_summary.json",
+    configuration_dir = runtime_dir / "configuration"
+    measurement_dir = runtime_dir / "measurements"
+    _make_runtime_dir(configuration_dir)
+    _make_runtime_dir(measurement_dir)
+    _write_artifact(
+        configuration_dir / "overlay_plan.json",
+        "configuration",
+        "validated overlay.yaml and SNDlib Abilene plan",
         {
             "sites": list(overlay_config.sites),
             "tunnels": [tunnel.tunnel_id for tunnel in overlay_config.tunnels],
             "policies": [policy.policy_id for policy in overlay_config.policies],
+            "underlay": underlay_plan.to_dict(),
         },
     )
 
@@ -89,32 +107,69 @@ def main() -> int:
         net.start()
 
         queue_state = underlay.configure_queue_disciplines()
-        _write_json(runtime_dir / "underlay_qdisc_initial.json", queue_state)
+        _write_artifact(
+            configuration_dir / "qdisc_applied.json",
+            "configuration",
+            "TCLink HTB/NetEm plus tc qdisc CoDel configuration",
+            queue_state,
+        )
         extra_interfaces = overlay.configure_layer3()
         underlay.configure_addresses(extra_interfaces=extra_interfaces)
         underlay.wait_for_ospf()
-        _write_json(
-            runtime_dir / "underlay_routing_state.json",
+        _write_artifact(
+            measurement_dir / "underlay_routing_state.json",
+            "measurement",
+            "iproute2 and FRR runtime state capture",
             underlay.collect_routing_state(),
         )
         wan_reachability = overlay.verify_wan_reachability()
-        _write_json(runtime_dir / "wan_reachability.json", wan_reachability)
+        _write_artifact(
+            measurement_dir / "wan_reachability.json",
+            "measurement",
+            "real ICMP echo packets between CPE outer endpoints",
+            wan_reachability,
+        )
 
         overlay.configure_ovs_and_gre()
         overlay.start_controller_and_sensors()
         openflow = overlay.wait_for_openflow()
-        _write_json(runtime_dir / "openflow_connections.json", openflow)
+        _write_artifact(
+            measurement_dir / "openflow_connections.json",
+            "measurement",
+            "OVSDB is_connected state observed after OF1.3 negotiation",
+            openflow,
+        )
 
         policy = overlay.verify_policy_forwarding()
-        _write_json(runtime_dir / "policy_forwarding.json", policy)
+        _write_artifact(
+            measurement_dir / "policy_forwarding.json",
+            "measurement",
+            "real ICMP allow/deny flows through OpenFlow and GRE",
+            policy,
+        )
         gre = overlay.verify_gre_transport()
-        _write_json(runtime_dir / "gre_underlay_capture.json", gre)
+        _write_artifact(
+            measurement_dir / "gre_underlay_capture.json",
+            "measurement",
+            "tcpdump of outer IP protocol 47 at both underlay attachments",
+            gre,
+        )
         isolation = overlay.verify_underlay_isolation()
-        _write_json(runtime_dir / "underlay_isolation.json", isolation)
+        _write_artifact(
+            measurement_dir / "underlay_isolation.json",
+            "measurement",
+            "runtime route-table inspection on every underlay router",
+            isolation,
+        )
 
         time.sleep(float(overlay_config.controller["probe_interval_seconds"]) + 1)
         state = overlay.collect_state()
-        _write_json(runtime_dir / "overlay_state.json", state)
+        _write_artifact(
+            measurement_dir / "overlay_state.json",
+            "measurement",
+            "OVS flows, Suricata RX counters, and active GRE probe JSONL",
+            state,
+        )
         if not state["tunnel_probes"]:
             raise RuntimeError("Controller produced no active-probe telemetry")
         if not all(

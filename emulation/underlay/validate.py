@@ -4,6 +4,8 @@ import argparse
 import json
 from pathlib import Path
 
+from emulation.artifacts import artifact_envelope
+
 from .model import build_underlay_plan, load_underlay_config
 
 
@@ -33,7 +35,16 @@ def main() -> int:
         config_path = repo_root / config_path
     config = load_underlay_config(repo_root, config_path)
     plan = build_underlay_plan(config, args.profile)
-    payload = plan.to_json()
+    payload = json.dumps(
+        artifact_envelope(
+            artifact_class="configuration",
+            producer="emulation.underlay.validate",
+            method="SNDlib capacity plus Haversine/fiber delay derivation",
+            payload=plan.to_dict(),
+        ),
+        indent=2,
+        sort_keys=True,
+    )
 
     if args.output:
         output = args.output

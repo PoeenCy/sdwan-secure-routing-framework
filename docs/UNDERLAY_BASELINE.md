@@ -70,6 +70,60 @@ Mỗi cạnh $t \in E_{\mathrm{GRE}}$ ánh xạ tới hai outer endpoint và m�
 động trực tiếp tới packet của overlay; controller không tự vẽ ra delay hoặc
 loss.
 
+### 2.1. Hai pha bắt buộc phải tách biệt
+
+Phương pháp triển khai có một pha cấu hình tĩnh và một pha đo lường động.
+Hai pha cùng xuất hiện trong thí nghiệm nhưng không được dùng thay thế cho
+nhau.
+
+**Pha cấu hình hạ tầng** chạy trước `net.start()` hoặc ngay sau khi interface
+được tạo. Haversine chỉ được dùng ở pha này để sinh đầu vào NetEm:
+
+$$
+d^{\mathrm{cfg}}_{\mathrm{prop},e}
+= \frac{\alpha D^{\mathrm{geo}}_e}{v_f}\times 10^3.
+$$
+
+Ví dụ, nếu công thức cho $d^{\mathrm{cfg}}_{\mathrm{prop},e}=8\ \mathrm{ms}$,
+chương trình nạp đúng `delay 8ms` vào TCLink/NetEm. Con số 8 ms là **giới hạn
+vật lý được mô hình hóa**, không phải kết quả của lần chạy.
+
+**Pha đo lường** chỉ bắt đầu sau khi topology đã start và traffic thật đã đi
+qua interface. Các đại lượng kết quả được lấy từ công cụ quan sát runtime:
+
+$$
+d^{\mathrm{meas}}_{\text{one-way}}
+= t^{\mathrm{recv}}_{\text{D-ITG}}
+- t^{\mathrm{send}}_{\text{D-ITG}},
+$$
+
+$$
+\mathrm{RTT}^{\mathrm{meas}}
+= t^{\mathrm{probe\ reply}}-t^{\mathrm{probe\ send}},
+$$
+
+$$
+\Delta N^{\mathrm{drop}}_e
+= N^{\mathrm{drop}}_{e,\mathrm{after}}
+- N^{\mathrm{drop}}_{e,\mathrm{before}}.
+$$
+
+Trong đó timestamp đến từ D-ITG hoặc active probe, còn counter drop đến từ
+`tc -s -d qdisc`. `tcpdump` dùng để chứng minh packet xuất hiện ở đúng hop và
+có thể đối chiếu timestamp khi capture ở hai điểm dùng chung clock host.
+
+Repository cưỡng chế ranh giới này bằng cấu trúc artifact:
+
+```text
+runtime/.../configuration/   # input tĩnh; plot_eligible=false
+runtime/.../measurements/    # quan sát packet/counter thật; plot_eligible=true
+```
+
+Mọi script vẽ đồ thị kết quả phải từ chối artifact `configuration`. Vì vậy
+đường `configured propagation delay` có thể xuất hiện trong bảng cấu hình để
+đối chứng, nhưng không được đổi tên thành measured delay hay được dùng làm
+đường kết quả của thí nghiệm.
+
 ## 3. Topology routed underlay
 
 Topology sử dụng đủ 12 node và 15 physical link của bộ Abilene trong SNDlib.
@@ -200,7 +254,7 @@ packet và không ép random loss. Với một đường đi $P$, delay quan sá
 viết thành:
 
 $$
-d_{\mathrm{one\mbox{-}way}}(P,t)
+d_{\text{one-way}}(P,t)
 = \sum_{e\in P} d^{\mathrm{prop}}_e
 + \sum_{e\in P} d^{\mathrm{queue}}_e(t)
 + d^{\mathrm{proc}}(t).
@@ -334,7 +388,7 @@ tục phân biệt rõ “đã viết mã” với “đã kiểm chứng hoạt
 - Mã dựng underlay: [`emulation/underlay/containernet_builder.py`](../emulation/underlay/containernet_builder.py)
 - Mã dựng overlay: [`emulation/overlay/containernet_builder.py`](../emulation/overlay/containernet_builder.py)
 
-Các ảnh SVG không được vẽ bằng AI. Chúng được render từ file Graphviz `.dot`
+Các ảnh SVG được render từ file Graphviz `.dot`
 đặt cùng thư mục `docs/assets`, nhờ vậy tên node, link và kiến trúc có thể đối
 chiếu trực tiếp với cấu hình. Có thể tạo lại ảnh bằng các lệnh:
 

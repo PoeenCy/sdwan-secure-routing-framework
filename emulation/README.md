@@ -80,20 +80,24 @@ nhất từ traffic matrix bằng D-ITG. Kết quả của mỗi profile đượ
 
 ```text
 emulation/runtime/underlay/<profile>/
-├── underlay_plan.json
-├── underlay_qdisc_initial.json
-├── underlay_routing_state.json
-├── underlay_reachability.json
-├── underlay_traffic.json
-├── underlay_ditg_traffic.json
-├── underlay_load_response.json
-└── underlay_qdisc_final.json
+├── configuration/
+│   ├── underlay_plan.json
+│   └── qdisc_applied.json
+└── measurements/
+    ├── routing_state.json
+    ├── reachability.json
+    ├── iperf3_tcp.json
+    ├── ditg_packet_metrics.json
+    ├── load_response.json
+    └── qdisc_counters_final.json
 ```
 
-`underlay_traffic.json` chứa tcpdump và chênh lệch counter từng veth.
-`underlay_ditg_traffic.json` chứa rate cấu hình từ demand cùng delay, jitter,
-throughput và loss do D-ITG đo. `underlay_load_response.json` chứa throughput,
-concurrent ping và CoDel drop ở ba mức tải.
+Hai file trong `configuration/` chỉ ghi những gì được nạp vào hạ tầng và có
+`plot_eligible=false`. `iperf3_tcp.json` chứa tcpdump và chênh lệch counter
+từng veth. `ditg_packet_metrics.json` chứa delay, jitter, throughput và loss
+do D-ITG đo. `load_response.json` chứa throughput, concurrent ping và qdisc
+drop delta ở ba mức tải. Mọi file trong `measurements/` đều được sinh sau
+`net.start()` từ packet/counter runtime và có `plot_eligible=true`.
 
 ## Cơ sở dữ liệu và giới hạn tuyên bố
 
