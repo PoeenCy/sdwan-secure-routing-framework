@@ -1,0 +1,35 @@
+digraph packet_flow {
+  graph [
+    rankdir=TB,
+    splines=ortho,
+    nodesep=0.38,
+    ranksep=0.55,
+    pad="0.25",
+    bgcolor="transparent",
+    fontname="DejaVu Sans",
+    label="Luồng gói HR → FIN khi policy chọn GRE Path A",
+    labelloc=t,
+    fontsize=20
+  ];
+  node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10, margin="0.12,0.08", color="#3d5368"];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#40566a", penwidth=1.6];
+
+  HR [label="1. HR host\n192.168.10.10\nDefault gateway .1", fillcolor="#e9f8ef"];
+  ACCESS [label="2. CPE-HR access0\nARP gateway do controller trả lời", fillcolor="#e8f1fb"];
+  POLICY [label="3. OpenFlow policy\nHR → FIN: ALLOW\nOutput g-hf-a", fillcolor="#f1eafe"];
+  ENCAP [label="4. OVS GRE encapsulation\nInner: 192.168.10.10 → 192.168.30.10\nOuter: 10.65.0.2 → 10.65.0.18", fillcolor="#dceeff"];
+  WAN [label="5. Abilene underlay\nFRR/OSPF chỉ thấy outer IP\nHTB → NetEm → CoDel tác động gói thật", shape=ellipse, fillcolor="#fff2c2"];
+  DECAP [label="6. CPE-FIN GRE decapsulation\nMatch in_port g-hf-a", fillcolor="#dceeff"];
+  FIN [label="7. FIN host\n192.168.30.10\nNhận inner packet", fillcolor="#e9f8ef"];
+  IDS1 [label="Suricata HR\nnhận bản sao L7\ntrước encapsulation", fillcolor="#fff0e4"];
+  IDS2 [label="Suricata FIN\nnhận bản sao L7\nsau decapsulation", fillcolor="#fff0e4"];
+
+  HR -> ACCESS [label="Ethernet/IP"];
+  ACCESS -> POLICY [label="Packet-In lần đầu"];
+  POLICY -> ENCAP [label="FlowMod + forwarding"];
+  ENCAP -> WAN [label="GRE, IP protocol 47", color="#1677c8", penwidth=2.6];
+  WAN -> DECAP [label="GRE, IP protocol 47", color="#1677c8", penwidth=2.6];
+  DECAP -> FIN [label="rewritten Ethernet"];
+  ACCESS -> IDS1 [style=dashed, color="#c45d16", label="SPAN copy"];
+  DECAP -> IDS2 [style=dashed, color="#c45d16", label="SPAN copy"];
+}

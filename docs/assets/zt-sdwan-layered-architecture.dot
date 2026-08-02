@@ -1,0 +1,90 @@
+digraph architecture {
+  graph [
+    rankdir=TB,
+    splines=ortho,
+    nodesep=0.42,
+    ranksep=0.68,
+    pad="0.25",
+    bgcolor="transparent",
+    compound=true,
+    fontname="DejaVu Sans",
+    label="Kiến trúc phân lớp ZT-SR SD-WAN trên Containernet",
+    labelloc=t,
+    fontsize=20
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    fontname="DejaVu Sans",
+    fontsize=11,
+    margin="0.14,0.09",
+    color="#41576b"
+  ];
+  edge [fontname="DejaVu Sans", fontsize=9, color="#465b6e", penwidth=1.5];
+
+  subgraph cluster_control {
+    label="CONTROL & SECURITY PLANE — mạng quản trị 192.168.200.0/24";
+    color="#8b5cf6";
+    style="rounded,dashed";
+    CTRL [label="OS-Ken Controller\nOpenFlow 1.3 | TCP 6653\nPacket-In / FlowMod / Packet-Out", fillcolor="#f1eafe"];
+    IDS [label="Suricata Sensors\nSPAN trước GRE\nEVE JSON", fillcolor="#fff0e4"];
+    {rank=same; CTRL; IDS;}
+  }
+
+  subgraph cluster_lan {
+    label="ENTERPRISE LAN PLANE — không quảng bá vào OSPF";
+    color="#22a06b";
+    style="rounded,dashed";
+    HR [label="HR Docker host\n192.168.10.10/24", fillcolor="#e9f8ef"];
+    IT [label="IT Docker host\n192.168.20.10/24", fillcolor="#e9f8ef"];
+    FIN [label="FIN Docker host\n192.168.30.10/24", fillcolor="#e9f8ef"];
+    DMZ [label="DMZ Docker host\n192.168.40.10/24", fillcolor="#e9f8ef"];
+    {rank=same; HR; IT; FIN; DMZ;}
+  }
+
+  subgraph cluster_edge {
+    label="SD-WAN EDGE PLANE — mỗi CPE là một network namespace riêng";
+    color="#2f6fad";
+    style="rounded,dashed";
+    CPEHR [label="CPE-HR\nOVS br0 | DPID 1\nWAN1 + WAN2", fillcolor="#e8f1fb"];
+    CPEIT [label="CPE-IT\nOVS br0 | DPID 2\nWAN1 + WAN2", fillcolor="#e8f1fb"];
+    CPEFIN [label="CPE-FIN\nOVS br0 | DPID 3\nWAN1 + WAN2", fillcolor="#e8f1fb"];
+    CPEDMZ [label="CPE-DMZ\nOVS br0 | DPID 4\nWAN1 + WAN2", fillcolor="#e8f1fb"];
+    {rank=same; CPEHR; CPEIT; CPEFIN; CPEDMZ;}
+  }
+
+  subgraph cluster_underlay {
+    label="ROUTED UNDERLAY — SNDlib Abilene";
+    color="#d59b16";
+    style="rounded,dashed";
+    A [label="Path-A attachment\nATLAng / CHINng\nNYCMng / LOSAng", fillcolor="#fff6d8"];
+    CORE [label="12 FRR router | OSPF area 0\n15 link HTB → NetEm → CoDel\n10.64.0.0/16 + 10.255.0.0/24", shape=ellipse, fillcolor="#fff2c2"];
+    B [label="Path-B attachment\nHSTNng / IPLSng\nWASHng / SNVAng", fillcolor="#fff6d8"];
+    {rank=same; A; CORE; B;}
+    A -> CORE [dir=both, label="IP forwarding"];
+    CORE -> B [dir=both, label="IP forwarding"];
+  }
+
+  HR -> CPEHR [label="access0"];
+  IT -> CPEIT [label="access0"];
+  FIN -> CPEFIN [label="access0"];
+  DMZ -> CPEDMZ [label="access0"];
+
+  CPEHR -> A [dir=both, label="WAN1 / GRE-A", color="#1677c8", penwidth=2.4];
+  CPEHR -> B [dir=both, label="WAN2 / GRE-B", color="#cc6f16", penwidth=2.4];
+  CPEIT -> A [dir=both, color="#1677c8", penwidth=2.4];
+  CPEIT -> B [dir=both, color="#cc6f16", penwidth=2.4];
+  CPEFIN -> A [dir=both, color="#1677c8", penwidth=2.4];
+  CPEFIN -> B [dir=both, color="#cc6f16", penwidth=2.4];
+  CPEDMZ -> A [dir=both, color="#1677c8", penwidth=2.4];
+  CPEDMZ -> B [dir=both, color="#cc6f16", penwidth=2.4];
+
+  CTRL -> CPEHR [style=dashed, color="#7c3aed", label="OF1.3"];
+  CTRL -> CPEIT [style=dashed, color="#7c3aed"];
+  CTRL -> CPEFIN [style=dashed, color="#7c3aed"];
+  CTRL -> CPEDMZ [style=dashed, color="#7c3aed"];
+  CPEHR -> IDS [style=dotted, color="#c45d16", label="mirror"];
+  CPEIT -> IDS [style=dotted, color="#c45d16"];
+  CPEFIN -> IDS [style=dotted, color="#c45d16"];
+  CPEDMZ -> IDS [style=dotted, color="#c45d16"];
+}

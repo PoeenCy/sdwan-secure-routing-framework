@@ -7,6 +7,7 @@ from dataclasses import dataclass
 class RouterInterface:
     name: str
     subnet: str
+    passive: bool = False
 
 
 def ospf_vtysh_arguments(
@@ -19,6 +20,8 @@ def ospf_vtysh_arguments(
     """Return deterministic vtysh -c arguments for one underlay router."""
     commands = ["configure terminal"]
     for interface in interfaces:
+        if interface.passive:
+            continue
         commands.extend(
             [
                 f"interface {interface.name}",
@@ -39,7 +42,13 @@ def ospf_vtysh_arguments(
     commands.extend(
         f"network {interface.subnet} area {area}" for interface in interfaces
     )
-    commands.extend(["passive-interface lo", "end", "write memory"])
+    commands.append("passive-interface lo")
+    commands.extend(
+        f"passive-interface {interface.name}"
+        for interface in interfaces
+        if interface.passive
+    )
+    commands.extend(["end", "write memory"])
     return commands
 
 

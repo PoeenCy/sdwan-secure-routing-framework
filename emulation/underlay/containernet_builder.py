@@ -122,7 +122,10 @@ class ContainernetUnderlay:
             )
         return body
 
-    def configure_addresses(self) -> None:
+    def configure_addresses(
+        self,
+        extra_interfaces: dict[str, list[RouterInterface]] | None = None,
+    ) -> None:
         node_by_id = {node.node_id: node for node in self.plan.nodes}
         interface_inventory: dict[str, list[RouterInterface]] = {
             node.node_id: [] for node in self.plan.nodes
@@ -166,6 +169,13 @@ class ContainernetUnderlay:
             interface_inventory[link.right].append(
                 RouterInterface(runtime.right_interface, link.subnet)
             )
+
+        for node_id, interfaces in (extra_interfaces or {}).items():
+            if node_id not in interface_inventory:
+                raise UnderlayRuntimeError(
+                    f"Unknown underlay router for extra interface: {node_id}"
+                )
+            interface_inventory[node_id].extend(interfaces)
 
         for node_id, interfaces in interface_inventory.items():
             node = node_by_id[node_id]

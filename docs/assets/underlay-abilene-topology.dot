@@ -1,0 +1,66 @@
+graph abilene {
+  graph [
+    layout=neato,
+    overlap=false,
+    splines=true,
+    outputorder=edgesfirst,
+    bgcolor="transparent",
+    pad="0.35",
+    margin=0,
+    fontname="DejaVu Sans",
+    label="SNDlib Abilene underlay — 12 router, 15 physical link",
+    labelloc=t,
+    fontsize=20
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    fillcolor="#e8f1fb",
+    color="#28527a",
+    penwidth=1.6,
+    fontname="DejaVu Sans",
+    fontsize=12,
+    margin="0.12,0.08"
+  ];
+  edge [
+    color="#58748f",
+    penwidth=1.8,
+    fontname="DejaVu Sans",
+    fontsize=9,
+    fontcolor="#263746"
+  ];
+
+  STTLng [pos="0,5!"];
+  SNVAng [pos="0.4,2.3!"];
+  LOSAng [pos="0.1,0.3!"];
+  DNVRng [pos="3.2,3.7!"];
+  KSCYng [pos="5.7,2.5!"];
+  HSTNng [pos="6.2,0.2!"];
+  CHINng [pos="7.3,5.0!"];
+  IPLSng [pos="8.1,3.4!"];
+  ATLAng [pos="9.2,1.4!"];
+  ATLAM5 [pos="8.6,0.1!"];
+  WASHng [pos="11.6,2.8!"];
+  NYCMng [pos="11.5,4.7!"];
+
+  ATLAM5 -- ATLAng [label="u001"];
+  ATLAng -- HSTNng [label="u002"];
+  ATLAng -- IPLSng [
+    label="u003 — 24.8 Mbps bottleneck",
+    color="#c2413b",
+    fontcolor="#9d2722",
+    penwidth=3.0
+  ];
+  ATLAng -- WASHng [label="u004"];
+  CHINng -- IPLSng [label="u005"];
+  CHINng -- NYCMng [label="u006"];
+  DNVRng -- KSCYng [label="u007"];
+  DNVRng -- SNVAng [label="u008"];
+  DNVRng -- STTLng [label="u009"];
+  HSTNng -- KSCYng [label="u010"];
+  HSTNng -- LOSAng [label="u011"];
+  IPLSng -- KSCYng [label="u012"];
+  LOSAng -- SNVAng [label="u013"];
+  NYCMng -- WASHng [label="u014"];
+  SNVAng -- STTLng [label="u015"];
+}

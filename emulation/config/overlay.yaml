@@ -1,0 +1,162 @@
+version: 1
+
+controller:
+  image: zt-sdwan-controller:local
+  command: sleep infinity
+  management_ip: 192.168.200.10/24
+  openflow_port: 6653
+  probe_interval_seconds: 3
+  probe_timeout_seconds: 9
+  telemetry_path: /var/log/zt-sdwan/tunnel-probes.jsonl
+
+management:
+  subnet: 192.168.200.0/24
+  bridge: mgmt0
+
+containers:
+  cpe_image: zt-sdwan-cpe:local
+  cpe_command: /usr/local/bin/start-cpe
+  endpoint_image: zt-sdwan-endpoint:local
+  endpoint_command: sleep infinity
+  sensor_image: zt-sdwan-sensor:local
+  sensor_command: sleep infinity
+  cpe_capabilities: [NET_ADMIN, NET_RAW, SYS_ADMIN]
+  endpoint_capabilities: [NET_ADMIN, NET_RAW]
+  sensor_capabilities: [NET_ADMIN, NET_RAW]
+
+sites:
+  hr:
+    label: HR
+    dpid: "0000000000000001"
+    management_ip: 192.168.200.11/24
+    lan_subnet: 192.168.10.0/24
+    gateway_ip: 192.168.10.1/24
+    gateway_mac: "02:00:00:00:10:01"
+    host_ip: 192.168.10.10/24
+    host_mac: "02:00:00:00:10:10"
+    wans:
+      wan1:
+        router: ATLAng
+        subnet: 10.65.0.0/30
+        router_ip: 10.65.0.1/30
+        cpe_ip: 10.65.0.2/30
+        route_table: 101
+      wan2:
+        router: HSTNng
+        subnet: 10.65.0.4/30
+        router_ip: 10.65.0.5/30
+        cpe_ip: 10.65.0.6/30
+        route_table: 102
+
+  it:
+    label: IT
+    dpid: "0000000000000002"
+    management_ip: 192.168.200.12/24
+    lan_subnet: 192.168.20.0/24
+    gateway_ip: 192.168.20.1/24
+    gateway_mac: "02:00:00:00:20:01"
+    host_ip: 192.168.20.10/24
+    host_mac: "02:00:00:00:20:10"
+    wans:
+      wan1:
+        router: CHINng
+        subnet: 10.65.0.8/30
+        router_ip: 10.65.0.9/30
+        cpe_ip: 10.65.0.10/30
+        route_table: 103
+      wan2:
+        router: IPLSng
+        subnet: 10.65.0.12/30
+        router_ip: 10.65.0.13/30
+        cpe_ip: 10.65.0.14/30
+        route_table: 104
+
+  fin:
+    label: FIN
+    dpid: "0000000000000003"
+    management_ip: 192.168.200.13/24
+    lan_subnet: 192.168.30.0/24
+    gateway_ip: 192.168.30.1/24
+    gateway_mac: "02:00:00:00:30:01"
+    host_ip: 192.168.30.10/24
+    host_mac: "02:00:00:00:30:10"
+    wans:
+      wan1:
+        router: NYCMng
+        subnet: 10.65.0.16/30
+        router_ip: 10.65.0.17/30
+        cpe_ip: 10.65.0.18/30
+        route_table: 105
+      wan2:
+        router: WASHng
+        subnet: 10.65.0.20/30
+        router_ip: 10.65.0.21/30
+        cpe_ip: 10.65.0.22/30
+        route_table: 106
+
+  dmz:
+    label: DMZ
+    dpid: "0000000000000004"
+    management_ip: 192.168.200.14/24
+    lan_subnet: 192.168.40.0/24
+    gateway_ip: 192.168.40.1/24
+    gateway_mac: "02:00:00:00:40:01"
+    host_ip: 192.168.40.10/24
+    host_mac: "02:00:00:00:40:10"
+    wans:
+      wan1:
+        router: LOSAng
+        subnet: 10.65.0.24/30
+        router_ip: 10.65.0.25/30
+        cpe_ip: 10.65.0.26/30
+        route_table: 107
+      wan2:
+        router: SNVAng
+        subnet: 10.65.0.28/30
+        router_ip: 10.65.0.29/30
+        cpe_ip: 10.65.0.30/30
+        route_table: 108
+
+tunnels:
+  - id: hr-fin-a
+    path: A
+    key: 101
+    left: {site: hr, wan: wan1, port: g-hf-a, ofport: 11}
+    right: {site: fin, wan: wan1, port: g-hf-a, ofport: 11}
+  - id: hr-fin-b
+    path: B
+    key: 102
+    left: {site: hr, wan: wan2, port: g-hf-b, ofport: 12}
+    right: {site: fin, wan: wan2, port: g-hf-b, ofport: 12}
+  - id: it-fin-a
+    path: A
+    key: 201
+    left: {site: it, wan: wan1, port: g-if-a, ofport: 11}
+    right: {site: fin, wan: wan1, port: g-if-a, ofport: 13}
+  - id: it-fin-b
+    path: B
+    key: 202
+    left: {site: it, wan: wan2, port: g-if-b, ofport: 12}
+    right: {site: fin, wan: wan2, port: g-if-b, ofport: 14}
+  - id: dmz-fin-a
+    path: A
+    key: 301
+    left: {site: dmz, wan: wan1, port: g-df-a, ofport: 11}
+    right: {site: fin, wan: wan1, port: g-df-a, ofport: 15}
+  - id: dmz-fin-b
+    path: B
+    key: 302
+    left: {site: dmz, wan: wan2, port: g-df-b, ofport: 12}
+    right: {site: fin, wan: wan2, port: g-df-b, ofport: 16}
+
+policies:
+  - id: hr-fin
+    source: hr
+    destination: fin
+    tunnel: hr-fin-a
+    bidirectional: true
+  - id: it-fin
+    source: it
+    destination: fin
+    tunnel: it-fin-b
+    bidirectional: true
